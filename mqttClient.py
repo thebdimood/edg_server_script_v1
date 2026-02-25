@@ -33,11 +33,6 @@ class MqttClient:
 
         # logging setup
         self.logger = logging.getLogger(self.client_id)
-        self.logger.setLevel(logging.INFO)
-        handler = logging.FileHandler(log_file)
-        formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
 
         # Création client
         self.client = mqtt.Client(client_id=self.client_id, clean_session=True)
@@ -81,12 +76,6 @@ class MqttClient:
                 self._connected = True
                 self.logger.info("client MQTT connecté")
 
-                # Publie statut online
-                self.publish(
-                    f"devices/{self.client_id}/status",
-                    "online",
-                    retain=True
-                )
             else:
                 self._connected = False
                 self.logger.error("Erreur de reconnexion MQTT: %s", rc)
