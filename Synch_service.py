@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 from apscheduler.schedulers.background import BackgroundScheduler
-
+from config import DEVICE_ID
 
 
 class SyncService:
@@ -84,9 +84,9 @@ class SyncService:
             return
 
         for row in rows:
-            # row structure: (id, device_id, timestamp, water_level, water_temperature,
+            # row structure: (id, timestamp, water_level, water_temperature,
             # liquid_level, liquid_temperature)
-            record_id, device_id, timestamp, water_level, water_temp, liq_level, liq_temp = row
+            record_id , timestamp, water_level, water_temp, liq_level, liq_temp = row
 
             payload = {
                 "id": record_id,
@@ -96,7 +96,7 @@ class SyncService:
                 "liquid_level": liq_level,
                 "liquid_temperature": liq_temp,
             }
-            topic = self.topic_template.format(device_id=device_id)
+            topic = self.topic_template.format(device_id=DEVICE_ID)
 
             if not self.mqtt.is_connected():
                 self.logger.warning("MQTT client disconnected during sync, stopping cycle")

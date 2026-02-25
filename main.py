@@ -16,11 +16,12 @@ from config import (
 
 def setup_root_logger(log_file: str = LOG_FILE):
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    handler = logging.FileHandler(log_file)
-    fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-    handler.setFormatter(fmt)
-    logger.addHandler(handler)
+    if not logger.handlers:
+        logger.setLevel(logging.INFO)
+        handler = logging.FileHandler(log_file)
+        fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+        handler.setFormatter(fmt)
+        logger.addHandler(handler)
     return logger
 
 

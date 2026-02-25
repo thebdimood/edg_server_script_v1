@@ -61,7 +61,7 @@ class DatabaseService:
                 cursor.execute("""
                     INSERT INTO measurements
                     (timestamp, water_level, water_temperature, liquid_level, liquid_temperature, synced)
-                    VALUES (?, ?, ?, ?, ?, 0)
+                    VALUES (?, ?, ?, ?, ?, FALSE)
                 """, (
                     datetime.utcnow().isoformat(),
                     water_level,
@@ -76,19 +76,18 @@ class DatabaseService:
     # READ UNSYNCED DATA
     # ------------------------------------------------
 
-    def get_unsynced(self):
+    def get_unsynced(self,limit=50):
         with self._lock:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
 
                 cursor.execute("""
-                    SELECT id, device_id, timestamp, water_level, water_temperature, liquid_level, liquid_temperature
+                    SELECT id, timestamp, water_level, water_temperature, liquid_level, liquid_temperature
                     FROM measurements
-                    WHERE synced = 0
+                    WHERE synced = FALSE
                     ORDER BY timestamp ASC
-                    
-                """)
-
+                    LIMIT ?
+                """, (limit,))
                 return cursor.fetchall()
 
     # ------------------------------------------------
@@ -102,7 +101,7 @@ class DatabaseService:
 
                 cursor.execute("""
                     UPDATE measurements
-                    SET synced = 1
+                    SET synced = TRUE
                     WHERE id = ?
                 """, (record_id,))
 
