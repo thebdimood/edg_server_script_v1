@@ -21,7 +21,7 @@ class DatabaseService:
     def _initialize_database(self):
         with self._get_connection() as conn:
             cursor = conn.cursor()
-
+            cursor.execute("PRAGMA journal_mode=WAL")
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS measurements (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
