@@ -63,7 +63,6 @@ class FakeModbusService:
             liquid_temperature = round(random.uniform(10.0, 25.0), 2)
 
             self.db.insert_measurement(
-                device_id=str(self.unit_id),
                 water_level=water_level,
                 water_temperature=water_temperature,
                 liquid_level=liquid_level,
