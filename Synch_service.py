@@ -34,12 +34,7 @@ class SyncService:
         self.topic_template = topic_template
         self.sync_interval = sync_interval
 
-        self.logger = logging.getLogger("SyncService")
-        self.logger.setLevel(logging.INFO)
-        handler = logging.FileHandler("app.log")
-        formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
+        self.logger = logging.getLogger()
 
         self._scheduler: Optional[BackgroundScheduler] = None
 

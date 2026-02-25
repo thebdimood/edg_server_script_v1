@@ -24,12 +24,7 @@ class FakeModbusService:
         self.unit_id = unit_id
         self.poll_interval = poll_interval
 
-        self.logger = logging.getLogger("FakeModbusService")
-        self.logger.setLevel(logging.INFO)
-        handler = logging.FileHandler("fake_modbus.log")
-        fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
-        handler.setFormatter(fmt)
-        self.logger.addHandler(handler)
+        self.logger = logging.getLogger()
 
         self._scheduler: Optional[BackgroundScheduler] = None
 

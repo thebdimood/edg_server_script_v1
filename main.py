@@ -2,8 +2,6 @@ import time
 import logging
 from database_service import DatabaseService
 from fake_modbus_service import FakeModbusService
-from fake_modbus_service import FakeModbusService
-from modbus_service import ModbusService
 from mqttClient import MqttClient
 from Synch_service import SyncService
 from config import (
