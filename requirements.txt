@@ -1,3 +1,4 @@
 apscheduler
 paho-mqtt
-sqlite3
+pyserial
+pymodbus

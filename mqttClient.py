@@ -2,21 +2,24 @@ import json
 import ssl
 import threading
 import logging
+import uuid
 import paho.mqtt.client as mqtt
-
+from config import LOG_FILE, DEVICE_ID
 
 class MqttClient:
     def __init__(
         self,
         broker,
         port=1883,
-        client_id="edge-device-01",
+        client_id=None,
         username=None,
         password=None,
         use_tls=False,
         ca_cert=None,
-        log_file: str = "mqtt_client.log"
+        log_file: str = LOG_FILE
     ):
+        if client_id is None:
+            client_id = DEVICE_ID
         self.broker = broker
         self.port = port
         self.client_id = client_id

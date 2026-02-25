@@ -53,17 +53,16 @@ class DatabaseService:
     # INSERT DATA
     # ------------------------------------------------
 
-    def insert_measurement(self, device_id, water_level, water_temperature, liquid_level, liquid_temperature):
+    def insert_measurement(self, water_level, water_temperature, liquid_level, liquid_temperature):
         with self._lock:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
 
                 cursor.execute("""
                     INSERT INTO measurements
-                    (device_id, timestamp, water_level, water_temperature, liquid_level, liquid_temperature, synced)
-                    VALUES (?, ?, ?, ?, ?, ?, 0)
+                    (timestamp, water_level, water_temperature, liquid_level, liquid_temperature, synced)
+                    VALUES (?, ?, ?, ?, ?, 0)
                 """, (
-                    device_id,
                     datetime.utcnow().isoformat(),
                     water_level,
                     water_temperature,
