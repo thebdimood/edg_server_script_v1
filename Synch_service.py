@@ -46,8 +46,14 @@ class SyncService:
         if not self.mqtt.is_connected():
             self.logger.info("Starting MQTT client connection")
             self.mqtt.connect()
-        self._scheduler = BackgroundScheduler()
+        job_defaults = {
+            'max_instances': 1,
+            'coalesce': True,
+            'misfire_grace_time': 30  # Donne 30s de marge si le Pi rame
+        }
+        self._scheduler = BackgroundScheduler(job_defaults=job_defaults)
         # schedule job
+        
         self._scheduler.add_job(self._perform_sync, "interval", seconds=self.sync_interval)
         self._scheduler.start()
         self.logger.info("Synchronization scheduled every %ds", self.sync_interval)
