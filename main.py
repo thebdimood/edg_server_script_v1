@@ -22,7 +22,7 @@ def main():
 
     # create services
     db = DatabaseService(db_path="edge.db")
-    mqtt = MqttClient("broker.example.com", log_file="app.log")
+    mqtt = MqttClient("38.242.228.212", log_file="app.log")
 
     # create and start sync service
     sync = SyncService(db, mqtt, sync_interval=30)
