@@ -2,13 +2,10 @@ import time
 import logging
 from database_service import DatabaseService
 from fake_modbus_service import FakeModbusService
-from mqttClient import MqttClient
-from Synch_service import SyncService
+from SynchServiceHttp import SyncService
 from config import (
     DB_PATH, LOG_FILE,
-    MQTT_BROKER,
-    SYNC_INTERVAL_SECONDS,
-    MODBUS_SERIAL_PORT, MODBUS_BAUDRATE, MODBUS_POLL_INTERVAL,
+    MODBUS_POLL_INTERVAL,
 )
 
 
@@ -30,14 +27,14 @@ def main():
 
     # create services
     db = DatabaseService(db_path=DB_PATH)
-    mqtt = MqttClient(MQTT_BROKER, log_file=LOG_FILE)
+   # mqtt = MqttClient(MQTT_BROKER, log_file=LOG_FILE)
     modbus = FakeModbusService(
         db,
         poll_interval=MODBUS_POLL_INTERVAL,
     )
 
     # create and start sync service
-    sync = SyncService(db, mqtt, sync_interval=SYNC_INTERVAL_SECONDS)
+    sync = SyncService(db)
     modbus.start()
     sync.start()
 

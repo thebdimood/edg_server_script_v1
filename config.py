@@ -14,11 +14,14 @@ DB_PATH: str = "edge.db"
 #device settings
 DEVICE_ID:str="1"
 
+
 # logging
 LOG_FILE: str = "app.log"
 MQTT_LOG_FILE: str = "mqtt_client.log"
 MODBUS_LOG_FILE: str = "modbus.log"
 
+#API settings
+API_URL: str = "http://38.242.228.212:8000/api/add-data"
 # MQTT broker settings
 MQTT_BROKER: str = "38.242.228.212"
 MQTT_PORT: int = 1883
