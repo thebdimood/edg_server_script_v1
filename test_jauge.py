@@ -72,7 +72,7 @@ async def main():
         while True:
             tasks = []
             for unit_id in UNIT_IDS:
-                await flush_buffer(client)
+               # await flush_buffer(client)
                 for flott_id, reg_addr in REGISTRE_FLOTTEUR.items():
                     tasks.append(lire_flotteur(client, unit_id, flott_id, reg_addr))
             await asyncio.gather(*tasks)
