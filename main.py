@@ -1,12 +1,12 @@
 import time
 import logging
 from database_service import DatabaseService
-from fake_modbus_service import FakeModbusService
 from SynchServiceHttp import SyncService
 from config import (
     DB_PATH, LOG_FILE,
     MODBUS_POLL_INTERVAL,
 )
+from modbus_service_2 import ModbusService
 
 
 def setup_root_logger(log_file: str = LOG_FILE):
@@ -28,7 +28,7 @@ def main():
     # create services
     db = DatabaseService(db_path=DB_PATH)
    # mqtt = MqttClient(MQTT_BROKER, log_file=LOG_FILE)
-    modbus = FakeModbusService(
+    modbus = ModbusService(
         db,
         poll_interval=MODBUS_POLL_INTERVAL,
     )
@@ -41,7 +41,7 @@ def main():
     try:
         # keep the main thread alive while background scheduler works
         while True:
-            time.sleep(30)
+            time.sleep(1)
     except KeyboardInterrupt:
         logging.info("Shutdown requested by user")
     finally:

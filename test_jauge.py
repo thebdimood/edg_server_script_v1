@@ -14,9 +14,8 @@ TIMEOUT = 0.5
 
 UNIT_IDS = [1]  # Adresses connues uniquement
 REGISTRE_FLOTTEUR = {  # Mapping des flotteurs à leurs registres
-    0: 0x0000,
-    1: 0x0002,
-    2: 0x0004
+    1: 0x0002, #flotteur 1(carburant)
+    2: 0x0004 # flotteur 2 (flotteur eau)
 }
 
 # Logging minimal pour voir les erreurs

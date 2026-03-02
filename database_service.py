@@ -27,9 +27,7 @@ class DatabaseService:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
                     water_level REAL,
-                    water_temperature REAL,
                     liquid_level REAL,
-                    liquid_temperature REAL,
                     synced BOOLEAN DEFAULT FALSE
                 )
             """)
@@ -53,21 +51,19 @@ class DatabaseService:
     # INSERT DATA
     # ------------------------------------------------
 
-    def insert_measurement(self, water_level, water_temperature, liquid_level, liquid_temperature):
+    def insert_measurement(self, water_level,  liquid_level):
         with self._lock:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
 
                 cursor.execute("""
                     INSERT INTO measurements
-                    (timestamp, water_level, water_temperature, liquid_level, liquid_temperature, synced)
-                    VALUES (?, ?, ?, ?, ?, FALSE)
+                    (timestamp, water_level,  liquid_level, synced)
+                    VALUES (?, ?, ?, FALSE)
                 """, (
                     datetime.utcnow().isoformat(),
                     water_level,
-                    water_temperature,
                     liquid_level,
-                    liquid_temperature
                 ))
 
                 conn.commit()
@@ -82,7 +78,7 @@ class DatabaseService:
                 cursor = conn.cursor()
 
                 cursor.execute("""
-                    SELECT id, timestamp, water_level, water_temperature, liquid_level, liquid_temperature
+                    SELECT id, timestamp, water_level, liquid_level
                     FROM measurements
                     WHERE synced = FALSE
                     ORDER BY timestamp ASC

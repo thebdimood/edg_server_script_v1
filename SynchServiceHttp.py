@@ -2,7 +2,7 @@ import logging
 import requests  # Importation pour l'API REST
 from typing import Optional
 from apscheduler.schedulers.background import BackgroundScheduler
-from config import DEVICE_ID, API_URL, SYNC_INTERVAL_SECONDS
+from config import DEVICE_ID, API_URL, DEVICE_TYPE, SYNC_INTERVAL_SECONDS
 
 class SyncService:
     def __init__(
@@ -45,16 +45,15 @@ class SyncService:
 
         for row in rows:
             # Structure : (id, timestamp, water_level, water_temp, liq_level, liq_temp)
-            record_id, ts, w_lvl, w_temp, l_lvl, l_temp = row
+            record_id, ts, w_lvl, l_lvl  = row
 
-            # --- CONSTRUCTION DU FORMAT SPECIFIQUE ---
             # Format "data" : date,ID,DeviceID&Niveau&0&0...
             data_string = f"{ts},-34,{DEVICE_ID}&{l_lvl}&0&0&0&1.0&0&0&0&{l_lvl}"
 
             payload = {
                 "data": data_string,
                 "water_level": w_lvl,
-                "water_temperature": w_temp
+                "source": DEVICE_TYPE
             }
 
             if self._send_to_api(payload):

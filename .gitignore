@@ -26,6 +26,9 @@ Thumbs.db
 *.log
 logs/
 
+#database
+*.db
+
 # Build output
 dist/
 build/
