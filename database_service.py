@@ -1,7 +1,7 @@
 import sqlite3
 import threading
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 class DatabaseService:
@@ -52,6 +52,7 @@ class DatabaseService:
     # ------------------------------------------------
 
     def insert_measurement(self, water_level,  liquid_level):
+        cameroon_now = datetime.now(timezone(timedelta(hours=1))).isoformat()
         with self._lock:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -61,7 +62,7 @@ class DatabaseService:
                     (timestamp, water_level,  liquid_level, synced)
                     VALUES (?, ?, ?, FALSE)
                 """, (
-                    datetime.utcnow().isoformat(),
+                    cameroon_now,
                     water_level,
                     liquid_level,
                 ))

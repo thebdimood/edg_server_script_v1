@@ -1,6 +1,7 @@
 import logging
 import statistics
 from collections import deque
+import time
 from typing import Optional
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -51,6 +52,8 @@ class ModbusService:
 
         self._client: Optional[ModbusSerialClient] = None
         self._scheduler: Optional[BackgroundScheduler] = None
+        self._window_start = time.time()
+        self._window_duration = 300  # 5 minutes en secondes
 
         # Buffer circulaire de 10 valeurs (5 min / 30s)
         self._buffers = {
@@ -116,6 +119,7 @@ class ModbusService:
             self.logger.info("Lecture Modbus...")
 
             # Lecture des flotteurs
+            now = time.time()
             for flott_id, reg_addr in self.REGISTRE_FLOTTEUR.items():
                 value = self._read_float_register(reg_addr)
                 if value < TANK_MINIMAL_HEIGHT_MM or value > GAUGE_MAX_MM:  # filtrage de valeurs aberrantes
@@ -130,24 +134,42 @@ class ModbusService:
                     value+GAUGE_OFFSET_MM,
                     len(self._buffers[flott_id]),
                 )
+                
 
-            # Vérifier si on a 10 valeurs (5 minutes)
-            if all(len(buf) == 10 for buf in self._buffers.values()):
+            # Vérifier si on a 10 valeurs 
+           # --------------------------------------------------
+            # Vérification fenêtre 5 minutes
+            # --------------------------------------------------
+            time_elapsed = now - self._window_start
+            buffers_full = all(len(buf) == 10 for buf in self._buffers.values())
 
-                median_values = {
-                    flott_id: statistics.median(buf)
-                    for flott_id, buf in self._buffers.items()
-                }
+            if time_elapsed >= self._window_duration or buffers_full:
+
+                median_values = {}
+
+                for flott_id, buf in self._buffers.items():
+                    if len(buf) > 0:
+                        median_values[flott_id] = statistics.median(buf)
+                    else:
+                        median_values[flott_id] = None
 
                 self.db.insert_measurement(
-                    water_level=median_values[1],  # flotteur eau
-                    liquid_level=median_values[0],  # flotteur carburant
+                    water_level=median_values.get(2),
+                    liquid_level=median_values.get(1),
                 )
-                self.logger.info("Médiane 5 minutes insérée en base")
 
-                # On vide les buffers pour recommencer un nouveau cycle
+                self.logger.info(
+                    "Fenêtre clôturée. Eau=%s Carburant=%s",
+                    median_values.get(2),
+                    median_values.get(1),
+                )
+
+                # Reset buffers
                 for buf in self._buffers.values():
                     buf.clear()
+
+                # Reset timer
+                self._window_start = time.time()
 
         except ModbusException as exc:
             self.logger.error("Erreur Modbus: %s", exc)
