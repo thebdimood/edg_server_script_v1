@@ -71,6 +71,9 @@ class ModbusService:
             parity=self.parity,
             stopbits=self.stopbits,
             timeout=self.timeout,
+            handle_local_echo=False,
+            reconnect_delay=1,
+            reconnect_delay_max=10
         )
 
         if not self._client.connect():
@@ -80,7 +83,7 @@ class ModbusService:
         self.logger.info("Connecté au Modbus RTU %s", self.serial_port)
 
         self._scheduler = BackgroundScheduler()
-        self._scheduler.add_job(self._poll, "interval", seconds=self.poll_interval)
+        self._scheduler.add_job(self._poll, "interval", seconds=self.poll_interval,misfire_grace_time=15)
         self._scheduler.start()
 
         self.logger.info("Polling démarré toutes les %ds", self.poll_interval)
@@ -112,13 +115,17 @@ class ModbusService:
         return raw / 65536.0
 
     def _poll(self):
-        if not self._client:
+        if not self._client or not self._client.connected:
+            self.logger.warning("Client Modbus non connecté")
+            if self._client: self._client.connect()  # tentative de reconnexion
             return
 
         try:
-            self.logger.info("Lecture Modbus...")
+            #self.logger.info("Lecture Modbus...")
 
             # Lecture des flotteurs
+            if hasattr(self._client,'socket') and self._client.socket:
+                self._client.socket.reset_input_buffer()  # vider le buffer pour éviter les données obsolètes
             now = time.time()
             for flott_id, reg_addr in self.REGISTRE_FLOTTEUR.items():
                 value = self._read_float_register(reg_addr)
@@ -128,12 +135,12 @@ class ModbusService:
                     continue
                 self._buffers[flott_id].append(value+GAUGE_OFFSET_MM)  # on ajoute l'offset de jauge pour avoir la hauteur réelle
 
-                self.logger.info(
-                    "Flotteur %d -> %.2f mm (buffer size=%d)",
-                    flott_id,
-                    value+GAUGE_OFFSET_MM,
-                    len(self._buffers[flott_id]),
-                )
+               # self.logger.info(
+               #     "Flotteur %d -> %.2f mm (buffer size=%d)",
+               #     flott_id,
+               #    value+GAUGE_OFFSET_MM,
+               #   len(self._buffers[flott_id]),
+               #)
                 
 
             # Vérifier si on a 10 valeurs 
@@ -154,15 +161,15 @@ class ModbusService:
                         median_values[flott_id] = None
 
                 self.db.insert_measurement(
-                    water_level=median_values.get(2),
-                    liquid_level=median_values.get(1),
+                    water_level=median_values.get(1),
+                    liquid_level=median_values.get(2),
                 )
 
-                self.logger.info(
-                    "Fenêtre clôturée. Eau=%s Carburant=%s",
-                    median_values.get(2),
-                    median_values.get(1),
-                )
+                #self.logger.info(
+                #    "Fenêtre clôturée. Eau=%s Carburant=%s",
+                #    median_values.get(2),
+                #    median_values.get(1),
+                #)
 
                 # Reset buffers
                 for buf in self._buffers.values():

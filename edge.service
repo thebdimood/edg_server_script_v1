@@ -3,9 +3,9 @@ Description=Edge Modbus Service
 After=network.target
 
 [Service]
-User=pi
-WorkingDirectory=/home/lightgroup/edge_server_script_v1
-ExecStart=/home/lightgroup/edge_server_script_v1/venv/bin/python /home/pi/edge_server_script_v1/main.py
+User=lightgroup
+WorkingDirectory=/home/lightgroup/edg_server_script_v1
+ExecStart=/home/lightgroup/edg_server_script_v1/venv/bin/python /home/pi/edg_server_script_v1/main.py
 Restart=always
 RestartSec=5
 StandardOutput=journal

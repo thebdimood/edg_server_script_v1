@@ -15,7 +15,7 @@ DB_PATH: str = "edge.db"
 DEVICE_ID:str="1"
 DEVICE_TYPE:str="magnetostrictive"
 TANK_MINIMAL_HEIGHT_MM: int = 0
-TANK_MINIMAL_HEIGHT_MM: int =3300
+TANK_MAXIMAL_HEIGHT_MM: int =3300
 GAUGE_MAX_MM: int =3150
 GAUGE_OFFSET_MM: int =50
 
