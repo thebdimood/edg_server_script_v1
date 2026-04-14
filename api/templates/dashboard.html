@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Monitoring Cuve</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f4f4f4;
+text-align:center;
+}
+
+.container{
+width:80%;
+margin:auto;
+}
+
+canvas{
+background:white;
+padding:20px;
+border-radius:10px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Niveau Cuve - Journée en cours</h2>
+
+<div class="container">
+<canvas id="tankChart"></canvas>
+</div>
+
+<script>
+
+let chart;
+
+function loadData(){
+
+fetch("/api/today")
+.then(res=>res.json())
+.then(data=>{
+
+let time=[]
+let water=[]
+let liquid=[]
+
+data.forEach(row=>{
+console.log(data)
+
+let date = new Date(row.timestamp)
+
+
+time.push(date.toLocaleTimeString())
+water.push(row.water_level)
+liquid.push(row.liquid_level)
+
+})
+
+if(chart){
+chart.destroy()
+}
+
+chart = new Chart(document.getElementById("tankChart"),{
+
+type:"line",
+
+data:{
+labels:time,
+
+datasets:[
+
+{
+label:"Niveau Eau",
+data:water,
+borderColor:"blue",
+fill:false,
+tension: 0.4
+},
+
+{
+label:"Niveau Liquide",
+data:liquid,
+borderColor:"red",
+fill:false,
+tension: 0.4
+}
+
+]
+
+}
+
+})
+
+})
+
+}
+
+setInterval(loadData,500000)// every 5 minutes
+
+loadData()
+
+</script>
+
+</body>
+</html>

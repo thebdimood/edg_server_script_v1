@@ -52,24 +52,18 @@ class FakeModbusService:
         """Generate synthetic readings and insert them into the database."""
         try:
             # generate random values within reasonable ranges
-            water_level = round(random.uniform(10.0, 50.0), 2)
-            water_temperature = round(random.uniform(15.0, 30.0), 2)
-            liquid_level = round(random.uniform(20.0, 80.0), 2)
-            liquid_temperature = round(random.uniform(10.0, 25.0), 2)
+            water_level = round(random.uniform(100.0, 200.0), 2)
+            liquid_level = round(random.uniform(3000.0, 2000.0), 2)
 
             self.db.insert_measurement(
                 water_level=water_level,
-                water_temperature=water_temperature,
                 liquid_level=liquid_level,
-                liquid_temperature=liquid_temperature,
+
             )
             self.logger.info(
-                "Inserted fake measurement: water_level=%.2f, water_temp=%.2f, "
-                "liquid_level=%.2f, liquid_temp=%.2f",
+                "Fake Modbus poll: water_level=%.2f, liquid_level=%.2f",
                 water_level,
-                water_temperature,
                 liquid_level,
-                liquid_temperature,
             )
         except (OSError, ValueError) as exc:
             self.logger.error("Fake poll failed: %s", exc)

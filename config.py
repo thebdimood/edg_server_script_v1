@@ -12,19 +12,19 @@ from typing import Optional
 DB_PATH: str = "edge.db"
 
 #device settings
-DEVICE_ID:str="1"
+DEVICE_ID:str="TKS-111"
 DEVICE_TYPE:str="magnetostrictive"
 TANK_MINIMAL_HEIGHT_MM: int = 0
 TANK_MAXIMAL_HEIGHT_MM: int =3300
 GAUGE_MAX_MM: int =3150
-GAUGE_OFFSET_MM: int =50
+GAUGE_OFFSET_MM: int =80
 
 
 # logging
 LOG_FILE: str = "app.log"
 
 #API settings
-API_URL: str = "http://38.242.228.212:8000/api/add-data"
+API_URL: str = "http://192.168.1.151:8000/api/add-data"
 
 # MQTT broker settings
 MQTT_BROKER: str = "38.242.228.212"
@@ -35,13 +35,13 @@ MQTT_PASSWORD: Optional[str] = None
 MQTT_TOPIC_TEMPLATE: str = "devices/{device_id}/measurements"
 
 # synchronization
-SYNC_INTERVAL_SECONDS: int = 60 * 5   # every five minutes
+SYNC_INTERVAL_SECONDS: int = 60   # every five minutes
 
 # Modbus/RS‑485
-MODBUS_SERIAL_PORT: str = "/dev/ttyUSB0"       
+MODBUS_SERIAL_PORT: str = "COM5"       
 MODBUS_BAUDRATE: int = 9600
 MODBUS_PARITY: str = "O"
 MODBUS_STOPBITS: int = 1
 MODBUS_UNIT_ID: int = 1
-MODBUS_POLL_INTERVAL: int = 30        # every 30 seconds
+MODBUS_POLL_INTERVAL: int = 30       # every 30 seconds
 MODBUS_TIMEOUT: float = 3.0

@@ -121,3 +121,20 @@ class DatabaseService:
                 """, (cutoff_date.isoformat(),))
 
                 conn.commit()
+                
+    def get_today_measurements(self):
+        cameroon_now = datetime.now(timezone(timedelta(hours=1)))
+        today = cameroon_now.date().isoformat()
+
+        with self._lock:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+
+                cursor.execute("""
+                    SELECT timestamp, water_level, liquid_level
+                    FROM measurements
+                    WHERE date(timestamp) = ?
+                    ORDER BY timestamp ASC
+                """, (today,))
+
+                return cursor.fetchall()

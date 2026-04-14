@@ -6,6 +6,7 @@ from config import (
     DB_PATH, LOG_FILE,
     MODBUS_POLL_INTERVAL,
 )
+from fake_modbus_service import FakeModbusService
 from modbus_service_2 import ModbusService
 
 

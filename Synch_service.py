@@ -18,7 +18,7 @@ class SyncService:
         db_service,
         mqtt_client,
         topic_template: str = "devices/{device_id}/measurements",
-        sync_interval: int = 60*5,
+        sync_interval: int = 60,
     ):
         """Initialize the synchronization service.
 

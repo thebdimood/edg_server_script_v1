@@ -148,7 +148,7 @@ class ModbusService:
             # Vérification fenêtre 5 minutes
             # --------------------------------------------------
             time_elapsed = now - self._window_start
-            buffers_full = all(len(buf) == 10 for buf in self._buffers.values())
+            buffers_full = all(len(buf) == 3 for buf in self._buffers.values())
 
             if time_elapsed >= self._window_duration or buffers_full:
 
