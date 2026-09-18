@@ -1,6 +1,7 @@
 import sqlite3
 import threading
 import os
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
 
@@ -44,8 +45,14 @@ class DatabaseService:
 
             conn.commit()
 
+    @contextmanager
     def _get_connection(self):
-        return sqlite3.connect(self.db_path, check_same_thread=False)
+        conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     # ------------------------------------------------
     # INSERT DATA
@@ -109,7 +116,7 @@ class DatabaseService:
     # ------------------------------------------------
 
     def cleanup_old_data(self, days=30):
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         with self._lock:
             with self._get_connection() as conn:
@@ -117,7 +124,7 @@ class DatabaseService:
 
                 cursor.execute("""
                     DELETE FROM measurements
-                    WHERE timestamp < ?
+                    WHERE julianday(timestamp) < julianday(?) AND synced = TRUE
                 """, (cutoff_date.isoformat(),))
 
                 conn.commit()
@@ -138,3 +145,12 @@ class DatabaseService:
                 """, (today,))
 
                 return cursor.fetchall()
+
+    def pending_stats(self):
+        with self._lock:
+            with self._get_connection() as conn:
+                count, age = conn.execute("""
+                    SELECT COUNT(*), MAX(0, (julianday('now') - julianday(MIN(timestamp))) * 86400)
+                    FROM measurements WHERE synced = FALSE
+                """).fetchone()
+                return {"pending_count": count, "oldest_pending_age_seconds": int(age or 0)}

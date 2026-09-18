@@ -1,4 +1,9 @@
 import logging
+import sqlite3
+import time
+import shutil
+from pathlib import Path
+from health import WorkerHealth, monitored_cycle
 import requests  # Importation pour l'API REST
 from typing import Optional
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -12,6 +17,7 @@ class SyncService:
         sync_interval: int =SYNC_INTERVAL_SECONDS,
     ):
         self.db = db_service
+        self.health = WorkerHealth()
         self.api_url = api_url
         self.sync_interval = sync_interval
         self.logger = logging.getLogger("SyncService")
@@ -34,16 +40,25 @@ class SyncService:
             self._scheduler.shutdown(wait=False)
             self.logger.info("Scheduler stopped")
 
+    @monitored_cycle
     def _perform_sync(self):
         """Lit la DB et envoie via POST HTTP."""
         self.logger.info("Starting HTTP sync cycle")
         try:
+            stats = self.db.pending_stats()
+            usage = shutil.disk_usage(Path(self.db.db_path).resolve().parent)
+            self.logger.info("Storage health", extra={"event": "storage_health", **stats,
+                             "disk_used_percent": round(100 * usage.used / usage.total, 1)})
             rows = self.db.get_unsynced()
-        except (OSError, IOError, ValueError) as exc:
-            self.logger.error("Failed to fetch unsynced data: %s", exc)
+        except (OSError, ValueError, sqlite3.Error):
+            self.logger.exception("Failed to fetch unsynced data", extra={"event": "sync_failure"})
             return
 
+        batch_started = time.monotonic()
         for row in rows:
+            if time.monotonic() - batch_started >= 45:
+                break
+            self.health.progress()
             # Structure : (id, timestamp, water_level, water_temp, liq_level, liq_temp)
             record_id, ts, w_lvl, l_lvl  = row
 
@@ -59,11 +74,15 @@ class SyncService:
             if self._send_to_api(payload):
                 try:
                     self.db.mark_as_synced(record_id)
-                    self.logger.info("Record %s synced via HTTP", record_id)
-                except (OSError, IOError, ValueError) as exc:
-                    self.logger.error("Failed to mark record %s: %s", record_id, exc)
+                    self.logger.info("Record %s synced via HTTP", record_id,
+                                     extra={"event": "sync_success", "record_id": record_id})
+                except (OSError, ValueError, sqlite3.Error):
+                    self.logger.exception("Failed to mark record %s", record_id,
+                                          extra={"event": "sync_failure", "record_id": record_id})
+                    break
             else:
-                self.logger.error("API sync failed for record %s, aborting cycle", record_id)
+                self.logger.error("API sync failed for record %s, aborting cycle", record_id,
+                                  extra={"event": "sync_failure", "record_id": record_id})
                 break
 
         self.logger.info("Sync cycle complete")
@@ -77,7 +96,8 @@ class SyncService:
             if response.status_code in [200, 201]:
                 return True
             else:
-                self.logger.error("API Error %d: %s", response.status_code, response.text)
+                self.logger.error("API returned HTTP %d", response.status_code,
+                                  extra={"status_code": response.status_code})
                 return False
         except requests.exceptions.RequestException as e:
             self.logger.error("Connection to API failed: %s", e)

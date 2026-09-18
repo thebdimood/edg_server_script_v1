@@ -1,0 +1,10 @@
+[Unit]
+Description=Retry failed Edge service every 15 minutes
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=15min
+Unit=edge-recovery.service
+
+[Install]
+WantedBy=timers.target

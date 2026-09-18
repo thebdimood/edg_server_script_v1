@@ -1,0 +1,7 @@
+[Unit]
+Description=Retry failed Edge service outside maintenance
+ConditionPathExists=!/etc/edge/maintenance
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'if /usr/bin/systemctl is-failed --quiet edge.service; then /usr/bin/systemctl start edge.service; fi'

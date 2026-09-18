@@ -5,7 +5,7 @@ import logging
 # -------------------------------
 # CONFIGURATION
 # -------------------------------
-PORT = 'COM5'
+PORT = 'COM8'
 BAUDRATE = 9600
 PARITY = 'O'
 STOPBITS = 1

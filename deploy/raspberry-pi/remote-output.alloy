@@ -1,0 +1,8 @@
+// Replace all loki.echo.local_check.receiver references with
+// loki.write.remote.receiver in config.alloy, remove loki.echo, then append this.
+// Current Loki deployment does not require authentication.
+loki.write "remote" {
+  endpoint {
+    url = sys.env("LOKI_URL")
+  }
+}

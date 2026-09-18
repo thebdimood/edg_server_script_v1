@@ -24,7 +24,9 @@ Thumbs.db
 
 # Logs
 *.log
+*.log.*
 logs/
+monitoring/secrets/
 
 #database
 *.db

@@ -1,0 +1,85 @@
+// Raspberry Pi collection check. No remote endpoint is configured in this phase.
+logging {
+  level = "info"
+}
+
+local.file_match "application" {
+  path_targets = [{
+    __path__    = sys.env("LOG_FILE"),
+    application = "edge-modbus",
+    device      = sys.env("DEVICE_ID"),
+    site        = sys.env("SITE_ID"),
+    job         = "edge-app",
+  }]
+}
+
+loki.source.file "application" {
+  targets    = local.file_match.application.targets
+  forward_to = [loki.process.application.receiver]
+}
+
+loki.process "application" {
+  stage.json {
+    expressions = { timestamp = "timestamp", level = "level" }
+  }
+  stage.timestamp {
+    source            = "timestamp"
+    format            = "RFC3339Nano"
+    action_on_failure = "skip"
+  }
+  stage.labels {
+    values = { level = "" }
+  }
+  forward_to = [loki.echo.local_check.receiver]
+}
+
+loki.source.journal "edge" {
+  matches    = "_SYSTEMD_UNIT=edge.service"
+  max_age    = "1h"
+  labels     = { application = "edge-modbus", device = sys.env("DEVICE_ID"), site = sys.env("SITE_ID"), source = "edge-journal" }
+  forward_to = [loki.process.service.receiver]
+}
+
+// PID 1 lifecycle events reference UNIT instead of _SYSTEMD_UNIT.
+loki.source.journal "supervisor" {
+  matches    = "UNIT=edge.service"
+  max_age    = "1h"
+  labels     = { application = "edge-modbus", device = sys.env("DEVICE_ID"), site = sys.env("SITE_ID"), source = "systemd" }
+  forward_to = [loki.process.service.receiver]
+}
+
+loki.process "service" {
+  // Structured application records are already read from the file.
+  stage.drop {
+    expression          = `"application"\s*:\s*"edge-modbus"`
+    drop_counter_reason = "duplicate_application_record"
+  }
+  stage.static_labels {
+    values = { job = "edge-service" }
+  }
+  forward_to = [loki.echo.local_check.receiver]
+}
+
+loki.source.journal "kernel" {
+  matches    = "_TRANSPORT=kernel"
+  max_age    = "1h"
+  labels     = { application = "edge-modbus", device = sys.env("DEVICE_ID"), site = sys.env("SITE_ID") }
+  forward_to = [loki.process.kernel.receiver]
+}
+
+loki.process "kernel" {
+  stage.match {
+    selector            = `{application="edge-modbus"} !~ "(?i)(ch341|ttyUSB|usb|under.?voltage)"`
+    action              = "drop"
+    drop_counter_reason = "unrelated_kernel_event"
+  }
+  stage.static_labels {
+    values = { job = "edge-kernel" }
+  }
+  forward_to = [loki.echo.local_check.receiver]
+}
+
+// Writes collected records to Alloy stdout (journal under systemd).
+// No Alloy journal source is configured, so these records are not collected again.
+// Replace this diagnostic sink with loki.write when connecting the server later.
+loki.echo "local_check" {}

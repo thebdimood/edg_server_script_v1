@@ -1,15 +1,30 @@
 [Unit]
 Description=Edge Modbus Service
 After=network.target
+StartLimitIntervalSec=15min
+StartLimitBurst=5
+ConditionPathExists=!/etc/edge/maintenance
 
 [Service]
+Type=notify
+NotifyAccess=main
+WatchdogSec=120s
+TimeoutStartSec=90s
+TimeoutStopSec=30s
 User=lightgroup
 WorkingDirectory=/home/lightgroup/edg_server_script_v1
-ExecStart=/home/lightgroup/edg_server_script_v1/venv/bin/python /home/pi/edg_server_script_v1/main.py
+EnvironmentFile=-/etc/edge/edge.env
+Environment=PYTHONUNBUFFERED=1
+LogsDirectory=edge
+LogsDirectoryMode=0750
+UMask=0027
+Environment=LOG_FILE=/var/log/edge/app.log
+ExecStart=/home/lightgroup/edg_server_script_v1/venv/bin/python /home/lightgroup/edg_server_script_v1/main.py
 Restart=always
-RestartSec=5
+RestartSec=30s
 StandardOutput=journal
 StandardError=journal
+SyslogIdentifier=edge
 
 [Install]
 WantedBy=multi-user.target
